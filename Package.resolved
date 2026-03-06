@@ -1,15 +1,6 @@
 {
-  "originHash" : "3d207c08b2662973091597c2ea3b8f7cb9296db397aa774641784eb7dc6ecebd",
+  "originHash" : "6e045c0631f4366d806b86d635b9ebdbddd3173fe6e4f686e44578ac8faee919",
   "pins" : [
-    {
-      "identity" : "espeak-ng-spm",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/DePasqualeOrg/espeak-ng-spm.git",
-      "state" : {
-        "branch" : "fix-path-espeak-data-macro",
-        "revision" : "92ecb6a0b0f622fad8a8eb2afd29f75ebc0fe9d4"
-      }
-    },
     {
       "identity" : "mlx-swift",
       "kind" : "remoteSourceControl",
