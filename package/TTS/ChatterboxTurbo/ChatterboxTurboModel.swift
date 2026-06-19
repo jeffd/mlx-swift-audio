@@ -127,7 +127,7 @@ class ChatterboxTurboModel: Module {
   var s3Tokenizer: S3TokenizerV2?
 
   /// Text tokenizer (GPT-2 BPE from Hugging Face)
-  var textTokenizer: Tokenizer?
+  var textTokenizer: (any Tokenizers.Tokenizer)?
 
   /// Pre-computed conditionals
   var conds: ChatterboxTurboConditionals?
