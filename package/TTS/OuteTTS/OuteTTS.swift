@@ -6,7 +6,6 @@
 import Foundation
 import Hub
 @preconcurrency import MLX
-@preconcurrency import MLXLMCommon
 @preconcurrency import MLXNN
 import MLXRandom
 import Synchronization
@@ -68,7 +67,7 @@ struct OuteTTSConfig: Sendable {
 actor OuteTTS {
   private let config: OuteTTSConfig
   private let model: OuteTTSLMHeadModel
-  private let tokenizer: any Tokenizer
+  private let tokenizer: any Tokenizers.Tokenizer
   // nonisolated(unsafe) because it contains non-Sendable types but is immutable after creation
   private nonisolated(unsafe) let audioProcessor: OuteTTSAudioProcessor
   private let promptProcessor: OuteTTSPromptProcessor
@@ -80,7 +79,7 @@ actor OuteTTS {
   private init(
     config: OuteTTSConfig,
     model: OuteTTSLMHeadModel,
-    tokenizer: any Tokenizer,
+    tokenizer: any Tokenizers.Tokenizer,
     audioProcessor: OuteTTSAudioProcessor,
     promptProcessor: OuteTTSPromptProcessor,
     defaultSpeaker: OuteTTSSpeakerProfile?,
@@ -150,12 +149,9 @@ actor OuteTTS {
   private static func loadOuteTTSModel(
     modelId: String,
     progressHandler: @escaping @Sendable (Progress) -> Void,
-  ) async throws -> (OuteTTSLMHeadModel, any Tokenizer) {
-    // Download model files using MLXLMCommon's download helper
-    let configuration = ModelConfiguration(id: modelId, extraEOSTokens: ["<|im_end|>"])
-    let modelDirectory = try await downloadModel(
-      hub: HubApi.shared,
-      configuration: configuration,
+  ) async throws -> (OuteTTSLMHeadModel, any Tokenizers.Tokenizer) {
+    let modelDirectory = try await HubConfiguration.shared.snapshot(
+      from: modelId,
       progressHandler: progressHandler,
     )
 
@@ -241,7 +237,7 @@ actor OuteTTS {
 
     // Apply weights to model
     let parameters = ModuleParameters.unflattened(remappedWeights)
-    try model.update(parameters: parameters, verify: [.all])
+    try model.update(parameters: parameters, verify: Module.VerifyUpdate.all)
     eval(model)
 
     // Load tokenizer
