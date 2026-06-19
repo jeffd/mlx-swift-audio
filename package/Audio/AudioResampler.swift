@@ -61,15 +61,19 @@ public enum AudioResampler {
       fatalError("Failed to create output buffer for resampling")
     }
 
+    final class InputState: @unchecked Sendable {
+      var consumed = false
+    }
+
     var error: NSError?
-    nonisolated(unsafe) var inputConsumed = false
+    let inputState = InputState()
 
     let status = converter.convert(to: outputBuffer, error: &error) { _, outStatus in
-      if inputConsumed {
+      if inputState.consumed {
         outStatus.pointee = .noDataNow
         return nil
       }
-      inputConsumed = true
+      inputState.consumed = true
       outStatus.pointee = .haveData
       return inputBuffer
     }
