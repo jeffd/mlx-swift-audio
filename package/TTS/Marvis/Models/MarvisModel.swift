@@ -467,7 +467,7 @@ final class MarvisModel: Module {
     maxCodebooks: Int,
     tokens: MLXArray,
     tokensMask: MLXArray,
-    sampler: (MLXArray) -> MLXArray,
+    sampler: @escaping (MLXArray) -> MLXArray,
   ) throws -> MLXArray {
     precondition(cachesEnabled, "backbone caches are not enabled")
 

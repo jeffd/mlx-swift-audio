@@ -9,6 +9,7 @@ import AVFoundation
 import Foundation
 import Hub
 import MLX
+import MLXLMCommon
 import MLXNN
 import Tokenizers
 
@@ -452,7 +453,7 @@ actor MarvisTTS {
     qualityLevel: MarvisEngine.QualityLevel,
     stream: Bool,
     streamingIntervalTokens: Int,
-    sampler sampleFn: (MLXArray) -> MLXArray,
+    sampler sampleFn: @escaping (MLXArray) -> MLXArray,
     onStreamingResult: (@Sendable (TTSGenerationResult) -> Void)?,
   ) throws -> [TTSGenerationResult] {
     var results: [TTSGenerationResult] = []
