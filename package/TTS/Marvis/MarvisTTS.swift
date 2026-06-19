@@ -9,7 +9,6 @@ import AVFoundation
 import Foundation
 import Hub
 import MLX
-import MLXLMCommon
 import MLXNN
 import Tokenizers
 
@@ -46,7 +45,7 @@ actor MarvisTTS {
 
   private let model: MarvisModel
   private let promptURLs: [URL]
-  private let textTokenizer: any Tokenizer
+  private let textTokenizer: any Tokenizers.Tokenizer
   private let audioTokenizer: MimiTokenizer
   private let streamingDecoder: MimiStreamingDecoder
 
@@ -57,7 +56,7 @@ actor MarvisTTS {
   private init(
     model: MarvisModel,
     promptURLs: [URL],
-    textTokenizer: any Tokenizer,
+    textTokenizer: any Tokenizers.Tokenizer,
     audioTokenizer: MimiTokenizer,
     streamingDecoder: MimiStreamingDecoder,
     sampleRate: Double,
@@ -80,7 +79,7 @@ actor MarvisTTS {
     repoId: String = MarvisEngine.ModelVariant.default.repoId,
     progressHandler: @escaping @Sendable (Progress) -> Void = { _ in },
   ) async throws -> MarvisTTS {
-    let (config, prompts, weightFileURL) = try await snapshotAndConfig(
+    let (config, prompts, weightFileURL, modelDirectoryURL) = try await snapshotAndConfig(
       repoId: repoId,
       progressHandler: progressHandler,
     )
@@ -89,10 +88,7 @@ actor MarvisTTS {
     let model = try MarvisModel(config: config)
 
     // Load tokenizers
-    let textTokenizer = try await loadTokenizer(
-      configuration: ModelConfiguration(id: repoId),
-      hub: HubApi.shared,
-    )
+    let textTokenizer = try await Tokenizers.AutoTokenizer.from(modelFolder: modelDirectoryURL)
     let mimi = try await Mimi.fromPretrained(progressHandler: progressHandler)
     let audioTokenizer = MimiTokenizer(mimi)
     let streamingDecoder = MimiStreamingDecoder(mimi)
@@ -176,7 +172,7 @@ actor MarvisTTS {
   private static func snapshotAndConfig(
     repoId: String,
     progressHandler: @escaping (Progress) -> Void,
-  ) async throws -> (config: MarvisConfig, promptURLs: [URL], weightFileURL: URL) {
+  ) async throws -> (config: MarvisConfig, promptURLs: [URL], weightFileURL: URL, modelDirectoryURL: URL) {
     let modelDirectoryURL = try await HubConfiguration.shared.snapshot(from: repoId, progressHandler: progressHandler)
     let weightFileURL = modelDirectoryURL.appending(path: "model.safetensors")
     let promptDir = modelDirectoryURL.appending(path: "prompts", directoryHint: .isDirectory)
@@ -190,7 +186,7 @@ actor MarvisTTS {
 
     let configFileURL = modelDirectoryURL.appending(path: "config.json")
     let config = try JSONDecoder().decode(MarvisConfig.self, from: Data(contentsOf: configFileURL))
-    return (config, audioPromptURLs, weightFileURL)
+    return (config, audioPromptURLs, weightFileURL, modelDirectoryURL)
   }
 
   private static func installWeights(
